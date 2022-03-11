@@ -10,7 +10,8 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml', 'resource/slam.rviz']),
+        ('share/' + package_name, ['package.xml', 'resource/slam.rviz',
+         'resource/euroc_stereo.yaml', 'resource/orb_vocab.fbow']),
         ('share/' + package_name, glob('slam_launch/*launch.py'))
     ],
     install_requires=['setuptools'],

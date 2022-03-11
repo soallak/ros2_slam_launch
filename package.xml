@@ -10,6 +10,7 @@
   <depend>data_publisher</depend>
   <depend>image_proc</depend>
   <depend>openvslam_ros</depend>
+  <depend>stereo_image_proc</depend>
 
   <exec_depend>ros2launch</exec_depend>
 

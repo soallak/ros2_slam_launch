@@ -40,12 +40,19 @@ def generate_launch_description():
         name="right_rect",
         remappings=[("image", "image_raw")])
 
+    # TODO: Use parameters
+    disparity_cmp = ComposableNode(
+        package="stereo_image_proc",
+        plugin="stereo_image_proc::DisparityNode",
+        name="disparity"
+    )
+
     container = ComposableNodeContainer(
         name="SLAM_pipeline",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
-            dataset_publisher_cmp, left_rect_cmp, right_rect_cmp],
+            dataset_publisher_cmp, left_rect_cmp, right_rect_cmp, disparity_cmp],
         namespace="", output="screen")
 
     rviz2_config = os.path.join(
@@ -59,9 +66,23 @@ def generate_launch_description():
         arguments=['-d', rviz2_config]
     )
 
+    openvslam_vocab = os.path.join(
+        get_package_share_directory("slam_launch"), "orb_vocab.fbow")
+
+    # TODO: This needs to depend on launch parameters
+    openvslam_config = os.path.join(
+        get_package_share_directory("slam_launch"), "euroc_stereo.yaml")
+
+    openvslam = Node(
+        package="openvslam_ros",
+        executable="run_slam",
+        name="slam",
+        arguments=["-v", openvslam_vocab, "-c", openvslam_config])
+
     return LaunchDescription([dataset_arg,
                               dataset_period_arg,
                               dataset_type_arg,
                               start_rviz2_arg,
                               rviz2,
+                              openvslam,
                               container])
