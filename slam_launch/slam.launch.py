@@ -1,12 +1,12 @@
-from imp import IMP_HOOK
-from unicodedata import name
-
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import LaunchConfigurationEquals
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
+
+import os
+from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
@@ -17,6 +17,9 @@ def generate_launch_description():
         "dataset_period", description="Publishing period in milliseconds")
     dataset_type_arg = DeclareLaunchArgument(
         "dataset_type", description="Type of the dataset", choices=["euroc"])
+
+    start_rviz2_arg = DeclareLaunchArgument(
+        "start_rviz2", choices=["true", "false"], default_value="false")  # TODO: can we have booleans instead of strings
 
     # TODO: Adapt this depending on the dataset type
     dataset_publisher_cmp = ComposableNode(package="data_publisher", plugin="simulation::EurocPublisher", parameters=[{
@@ -45,4 +48,20 @@ def generate_launch_description():
             dataset_publisher_cmp, left_rect_cmp, right_rect_cmp],
         namespace="", output="screen")
 
-    return LaunchDescription([dataset_arg, dataset_period_arg, dataset_type_arg, container])
+    rviz2_config = os.path.join(
+        get_package_share_directory("slam_launch"), "slam.rviz")
+
+    rviz2 = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        condition=LaunchConfigurationEquals("start_rviz2", "true"),
+        arguments=['-d', rviz2_config]
+    )
+
+    return LaunchDescription([dataset_arg,
+                              dataset_period_arg,
+                              dataset_type_arg,
+                              start_rviz2_arg,
+                              rviz2,
+                              container])
