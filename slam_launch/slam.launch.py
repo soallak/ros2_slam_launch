@@ -24,7 +24,8 @@ def generate_launch_description():
     # TODO: Adapt this depending on the dataset type
     dataset_publisher_cmp = ComposableNode(package="data_publisher", plugin="simulation::EurocPublisher", parameters=[{
         "dataset_path": LaunchConfiguration(dataset_arg.name),
-        "period_ms": LaunchConfiguration(dataset_period_arg.name)
+        "period_ms": LaunchConfiguration(dataset_period_arg.name),
+        "frame_id": "camera_frame"
     }])
 
     left_rect_cmp = ComposableNode(
