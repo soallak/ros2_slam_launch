@@ -78,7 +78,10 @@ def generate_launch_description():
         package="openvslam_ros",
         executable="run_slam",
         name="slam",
-        arguments=["-v", openvslam_vocab, "-c", openvslam_config])
+        arguments=["-v", openvslam_vocab, "-c", openvslam_config],
+        parameters=[{"map_frame": "map_frame",
+                     "camera_frame": "left_camera_frame", "publish_tf": True}]
+    )
 
     return LaunchDescription([dataset_arg,
                               dataset_period_arg,
