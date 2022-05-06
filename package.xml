@@ -11,6 +11,7 @@
   <depend>image_proc</depend>
   <depend>openvslam_ros</depend>
   <depend>stereo_image_proc</depend>
+  <depend>rclcpp_components</depend>
 
   <exec_depend>ros2launch</exec_depend>
 

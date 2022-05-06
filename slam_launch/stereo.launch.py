@@ -18,14 +18,17 @@ def generate_launch_description():
     dataset_type_arg = DeclareLaunchArgument(
         "dataset_type", description="Type of the dataset", choices=["euroc"])
 
-    start_rviz2_arg = DeclareLaunchArgument(
-        "start_rviz2", choices=["true", "false"], default_value="false")  # TODO: can we have booleans instead of strings
+    # Stereo algorithm parameters
+    stereo_algorithm_arg = DeclareLaunchArgument(
+        name='stereo_algorithm', default_value='0',
+        description='Stereo algorithm: Block Matching (0), Semi-Global Block Matching (1) or HW Accelerated Block Matching (2)'
+    )
 
     # TODO: Adapt this depending on the dataset type
     dataset_publisher_cmp = ComposableNode(package="data_publisher", plugin="simulation::EurocPublisher", parameters=[{
         "dataset_path": LaunchConfiguration(dataset_arg.name),
         "period_ms": LaunchConfiguration(dataset_period_arg.name),
-        "frame_id": "left_camera_frame"
+        "frame_id": "camera_frame"
     }])
 
     left_rect_cmp = ComposableNode(
@@ -45,48 +48,22 @@ def generate_launch_description():
     disparity_cmp = ComposableNode(
         package="stereo_image_proc",
         plugin="stereo_image_proc::DisparityNode",
-        name="disparity"
+        name="disparity",
+        parameters=[{'stereo_algorithm': LaunchConfiguration('stereo_algorithm')
+                     }]
+
     )
 
     container = ComposableNodeContainer(
-        name="SLAM_pipeline",
+        name="stereo_container",
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=[
             dataset_publisher_cmp, left_rect_cmp, right_rect_cmp, disparity_cmp],
         namespace="", output="screen")
 
-    rviz2_config = os.path.join(
-        get_package_share_directory("slam_launch"), "slam.rviz")
-
-    rviz2 = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        condition=LaunchConfigurationEquals("start_rviz2", "true"),
-        arguments=['-d', rviz2_config]
-    )
-
-    openvslam_vocab = os.path.join(
-        get_package_share_directory("slam_launch"), "orb_vocab.fbow")
-
-    # TODO: This needs to depend on launch parameters
-    openvslam_config = os.path.join(
-        get_package_share_directory("slam_launch"), "euroc_stereo.yaml")
-
-    openvslam = Node(
-        package="openvslam_ros",
-        executable="run_slam",
-        name="slam",
-        arguments=["-v", openvslam_vocab, "-c", openvslam_config],
-        parameters=[{"map_frame": "map_frame",
-                     "camera_frame": "left_camera_frame", "publish_tf": True}]
-    )
-
     return LaunchDescription([dataset_arg,
                               dataset_period_arg,
                               dataset_type_arg,
-                              start_rviz2_arg,
-                              rviz2,
-                              openvslam,
+                              stereo_algorithm_arg,
                               container])
